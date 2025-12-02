@@ -64,6 +64,17 @@ Unlike standard counters, this utility features **Global Input Hooks**, allowing
    * Ensure `sound/pop.mp3` and `sound/success.mp3` are present in the project directory with **Build Action: Content**.
    * Ensure `Assets/icon.ico` is set up for the window title bar.
 
+4. **Trusting the Certificate (Required for MSIX Installation):**
+   * To install the generated `.msixbundle` as an app (Sideloading), you must first trust the certificate:
+   * Locate the certificate file (usually in the build output folder alongside the bundle).
+   * Double-click or right-click the certificate and select Install Certificate.
+   * Select `Local Machine` (requires Admin rights) and click Next.
+   * Choose Place all certificates in the following store.
+   * Click Browse and select `Trusted Root Certification Authorities`.
+   * Click OK -> Next -> Finish.
+
+You can now double-click the .msixbundle to install the app.
+
 ## ⚠️ Permissions & Antivirus Note
 
 This application uses **Global Low-Level Hooks** to function in the background.
