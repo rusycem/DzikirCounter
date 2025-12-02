@@ -2,8 +2,8 @@
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media; // Added for SolidColorBrush
-using Microsoft.UI; // Added for Colors
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 using Windows.Graphics;
 using WinRT.Interop;
 using System.ComponentModel;
@@ -19,6 +19,7 @@ namespace DzikirCounter
     {
         // Win32 P/Invoke Definitions (Min Size)
         private const int WM_GETMINMAXINFO = 0x0024;
+        private const int WM_DESTROY = 0x0002; // NEW: DETECT CLOSE
         private const int MIN_WIDTH = 300;
         private const int MIN_HEIGHT = 75;
 
@@ -37,22 +38,37 @@ namespace DzikirCounter
 
         public delegate IntPtr SubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, IntPtr uIdSubclass, IntPtr dwRefData);
 
-        [DllImport("ComCtl32.dll")]
+        [DllImport("ComCtl32.dll", SetLastError = true)]
         public static extern bool SetWindowSubclass(IntPtr hWnd, SubclassProc pfnSubclass, uint uIdSubclass, IntPtr dwRefData);
 
-        [DllImport("ComCtl32.dll")]
+        // NEW: REQUIRED TO FIX CRASH
+        [DllImport("ComCtl32.dll", SetLastError = true)]
+        public static extern bool RemoveWindowSubclass(IntPtr hWnd, SubclassProc pfnSubclass, uint uIdSubclass);
+
+        [DllImport("ComCtl32.dll", SetLastError = true)]
         public static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
 
         private static IntPtr WindowSubclass(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, IntPtr uIdSubclass, IntPtr dwRefData)
         {
             if (uMsg == WM_GETMINMAXINFO)
             {
-                MINMAXINFO minMaxInfo = Marshal.PtrToStructure<MINMAXINFO>(lParam)!;
-                minMaxInfo.ptMinTrackSize.x = MIN_WIDTH;
-                minMaxInfo.ptMinTrackSize.y = MIN_HEIGHT;
-                Marshal.StructureToPtr(minMaxInfo, lParam, false);
+                try
+                {
+                    MINMAXINFO minMaxInfo = Marshal.PtrToStructure<MINMAXINFO>(lParam)!;
+                    minMaxInfo.ptMinTrackSize.x = MIN_WIDTH;
+                    minMaxInfo.ptMinTrackSize.y = MIN_HEIGHT;
+                    Marshal.StructureToPtr(minMaxInfo, lParam, false);
+                }
+                catch { }
                 return IntPtr.Zero;
             }
+
+            // CRITICAL FIX: Unhook on Destroy
+            if (uMsg == WM_DESTROY)
+            {
+                RemoveWindowSubclass(hWnd, s_windowSubclass, (uint)uIdSubclass.ToInt32());
+            }
+
             return DefSubclassProc(hWnd, uMsg, wParam, lParam);
         }
 
@@ -64,12 +80,8 @@ namespace DzikirCounter
 
         private GlobalMouseHook? _xButtonHook;
         private GlobalMouseHook? _lButtonHook;
-
-        // NEW: Custom Hooks
         private GlobalMouseHook? _customMouseHook;
         private GlobalKeyboardHook? _customKeyboardHook;
-
-        // Recording Hooks (Temporary)
         private GlobalMouseHook? _recordingMouseHook;
         private GlobalKeyboardHook? _recordingKeyboardHook;
         private bool _isRecording = false;
@@ -78,8 +90,6 @@ namespace DzikirCounter
         private DispatcherQueue _uiDispatcher;
 
         private static readonly SubclassProc s_windowSubclass = WindowSubclass;
-
-        // Helper to restore button background
         private Brush _defaultButtonBackground;
 
         public MainWindow()
@@ -89,12 +99,16 @@ namespace DzikirCounter
             this.InitializeComponent();
             this.Title = "Dzikir Counter Utility";
 
+            // Fix for Theme Sync at startup:
+            // Ensure the toggle matches the system theme (which the app defaults to).
+            // This triggers the Toggled event to set the RequestedTheme explicitly.
+            ThemeToggle.IsOn = Application.Current.RequestedTheme == ApplicationTheme.Dark;
+
             _uiDispatcher = DispatcherQueue.GetForCurrentThread();
-            _defaultButtonBackground = RecordButton.Background; // Save default color
+            _defaultButtonBackground = RecordButton.Background;
 
-            InitializeAppWindow(380, 540);
+            InitializeAppWindow(380, 580); // Increased Height slightly for new UI
 
-            // Restore initial hooks based on saved state
             if (ViewModel.IsHookEnabled) EnableXButtonHook();
             if (ViewModel.IsLButtonHookEnabled) EnableLButtonHook();
             if (ViewModel.IsCustomInputEnabled) EnableCustomHook();
@@ -104,8 +118,6 @@ namespace DzikirCounter
                 _appWindow.Closing += AppWindow_Closing;
             }
         }
-
-        // --- Hook Control Methods (Standard) ---
 
         private void EnableXButtonHook()
         {
@@ -131,8 +143,6 @@ namespace DzikirCounter
             if (_lButtonHook != null) { _lButtonHook.Dispose(); _lButtonHook = null; }
         }
 
-        // --- Custom Hook Logic ---
-
         private void EnableCustomHook()
         {
             if (ViewModel.CustomInputType == InputType.None) return;
@@ -146,10 +156,7 @@ namespace DzikirCounter
             else if (ViewModel.CustomInputType == InputType.Keyboard)
             {
                 if (_customKeyboardHook != null) return;
-                _customKeyboardHook = new GlobalKeyboardHook(
-                    (code) => ViewModel.Increment(),
-                    _uiDispatcher,
-                    ViewModel.CustomInputCode);
+                _customKeyboardHook = new GlobalKeyboardHook((code) => ViewModel.Increment(), _uiDispatcher, ViewModel.CustomInputCode);
                 _customKeyboardHook.SetHook();
             }
         }
@@ -160,20 +167,15 @@ namespace DzikirCounter
             if (_customKeyboardHook != null) { _customKeyboardHook.Dispose(); _customKeyboardHook = null; }
         }
 
-        // --- RECORDING LOGIC (UPDATED) ---
-
         private void RecordCustomInput_Click(object sender, RoutedEventArgs e)
         {
             if (_isRecording) return;
             _isRecording = true;
 
-            // Disable active hooks so they don't count clicks while recording
             DisableXButtonHook();
             DisableLButtonHook();
             DisableCustomHook();
 
-            // Update UI: Show Instruction, Hide Bound Key, Change Color
-            // Do NOT disable the button, so text stays Black and readable
             BoundKeyText.Visibility = Visibility.Collapsed;
             InstructionText.Visibility = Visibility.Visible;
             RecordButton.Background = new SolidColorBrush(Colors.PaleGoldenrod);
@@ -183,16 +185,10 @@ namespace DzikirCounter
 
         private void StartRecordingListeners()
         {
-            _recordingMouseHook = new GlobalMouseHook((msgCode) =>
-            {
-                FinishRecording(InputType.Mouse, msgCode);
-            }, _uiDispatcher);
+            _recordingMouseHook = new GlobalMouseHook((msgCode) => { FinishRecording(InputType.Mouse, msgCode); }, _uiDispatcher);
             _recordingMouseHook.SetHook();
 
-            _recordingKeyboardHook = new GlobalKeyboardHook((keyCode) =>
-            {
-                FinishRecording(InputType.Keyboard, keyCode);
-            }, _uiDispatcher, -1);
+            _recordingKeyboardHook = new GlobalKeyboardHook((keyCode) => { FinishRecording(InputType.Keyboard, keyCode); }, _uiDispatcher, -1);
             _recordingKeyboardHook.SetHook();
         }
 
@@ -221,18 +217,14 @@ namespace DzikirCounter
 
             _isRecording = false;
 
-            // Restore UI
             BoundKeyText.Visibility = Visibility.Visible;
             InstructionText.Visibility = Visibility.Collapsed;
             RecordButton.Background = _defaultButtonBackground;
 
-            // Restore Hooks
             if (ViewModel.IsHookEnabled) EnableXButtonHook();
             if (ViewModel.IsLButtonHookEnabled) EnableLButtonHook();
             if (ViewModel.IsCustomInputEnabled) EnableCustomHook();
         }
-
-        // --- Event Handlers ---
 
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
@@ -242,29 +234,30 @@ namespace DzikirCounter
 
         private void XButtonHookToggle_Toggled(object sender, RoutedEventArgs e)
         {
-            if (sender is ToggleSwitch toggle)
-            {
-                if (toggle.IsOn) EnableXButtonHook(); else DisableXButtonHook();
-            }
+            if (sender is ToggleSwitch toggle) { if (toggle.IsOn) EnableXButtonHook(); else DisableXButtonHook(); }
         }
 
         private void LButtonHookToggle_Toggled(object sender, RoutedEventArgs e)
         {
-            if (sender is ToggleSwitch toggle)
-            {
-                if (toggle.IsOn) EnableLButtonHook(); else DisableLButtonHook();
-            }
+            if (sender is ToggleSwitch toggle) { if (toggle.IsOn) EnableLButtonHook(); else DisableLButtonHook(); }
         }
 
         private void CustomHookToggle_Toggled(object sender, RoutedEventArgs e)
         {
-            if (sender is ToggleSwitch toggle)
-            {
-                if (toggle.IsOn) EnableCustomHook(); else DisableCustomHook();
-            }
+            if (sender is ToggleSwitch toggle) { if (toggle.IsOn) EnableCustomHook(); else DisableCustomHook(); }
         }
 
-        // --- Window Management ---
+        // NEW: Theme Toggle Handler
+        private void ThemeToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                if (Content is FrameworkElement rootElement)
+                {
+                    rootElement.RequestedTheme = toggle.IsOn ? ElementTheme.Dark : ElementTheme.Light;
+                }
+            }
+        }
 
         private void InitializeAppWindow(int width, int height)
         {
@@ -287,7 +280,6 @@ namespace DzikirCounter
             }
         }
 
-        // --- UI Button Handlers ---
         private void DecreaseButton_Click(object sender, RoutedEventArgs e) => ViewModel.Decrement();
         private void IncreaseButton_Click(object sender, RoutedEventArgs e) => ViewModel.Increment();
         private void ResetButton_Click(object sender, RoutedEventArgs e) => ViewModel.Reset();
