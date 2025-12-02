@@ -11,7 +11,6 @@ Unlike standard counters, this utility features **Global Input Hooks**, allowing
 </div>
 
 ---
-
 ## ✨ Key Features
 
 ### 🚀 Productivity & Background Counting
