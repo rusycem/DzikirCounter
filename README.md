@@ -1,10 +1,16 @@
 # Dzikir Counter Utility (WinUI 3)
 
-A modern, productivity-focused Dzikir/Tasbih counter built with **WinUI 3** and **.NET 8**.
+> A modern, productivity-focused Dzikir/Tasbih counter built with **WinUI 3** and **.NET 8**.
 
 Unlike standard counters, this utility features **Global Input Hooks**, allowing you to recite and count while working, reading documents, or browsing the web, even when the application is minimized or in the background.
 
+<div align="center">
+   
 ![WinUI 3](https://img.shields.io/badge/WinUI-3.0-blue) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-lightgrey) ![License](https://img.shields.io/badge/License-MIT-green)
+
+</div>
+
+---
 
 ## ✨ Key Features
 
