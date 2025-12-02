@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FILENAME: MainWindow.xaml -->
+<Window
+    x:Class="DzikirCounter.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DzikirCounter"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    mc:Ignorable="d"
+    Title="Dzikir Counter Utility"
+    x:Name="RootWindow"
+    x:DataType="local:MainWindow">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid 
+        Padding="15" 
+        Background="White"
+        DataContext="{x:Bind ViewModel, Mode=OneWay}">
+
+        <Grid.Resources>
+            <ResourceDictionary>
+                <ResourceDictionary.MergedDictionaries>
+                    <controls:XamlControlsResources />
+                </ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Row 0: TITLE AND COUNTER -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 1: Increase/Decrease Buttons -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 2: Reset/Save Buttons -->
+            <RowDefinition Height="Auto"/>
+            <!-- Row 3: Toggles/Disclaimer -->
+            <RowDefinition Height="*"/>
+            <!-- Row 4: Spacer -->
+        </Grid.RowDefinitions>
+
+        <!-- ROW 0: TITLE AND COUNTER DISPLAY -->
+        <StackPanel Grid.Row="0" VerticalAlignment="Top" Spacing="0" Margin="0">
+            <TextBlock 
+                Text="Dzikir Counter Utility" 
+                Style="{StaticResource SubtitleTextBlockStyle}" 
+                HorizontalAlignment="Center" 
+                Foreground="{ThemeResource SystemAccentColorLight1}"
+                Margin="0,0,0,15"/>
+            <TextBlock 
+                Text="{x:Bind ViewModel.CurrentCount, Mode=OneWay}" 
+                FontSize="80" 
+                FontWeight="ExtraBold" 
+                HorizontalAlignment="Center" 
+                Foreground="{ThemeResource SystemAccentColorDark1}"/>
+        </StackPanel>
+
+        <!-- ROW 1: ESSENTIAL CONTROL BUTTONS -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Spacing="10" Margin="0, 10, 0, 10">
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" HorizontalAlignment="Stretch" Background="#EF5350" Foreground="White" FontSize="16" Height="40" Click="DecreaseButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="−" FontWeight="Bold"/>
+                        <TextBlock Text="Decrease"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="1" HorizontalAlignment="Stretch" Background="#66BB6A" Foreground="White" FontSize="16" Height="40" Click="IncreaseButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="+" FontWeight="Bold"/>
+                        <TextBlock Text="Increase"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </StackPanel>
+
+        <!-- ROW 2: SECONDARY CONTROL BUTTONS -->
+        <StackPanel Grid.Row="2" VerticalAlignment="Bottom" Spacing="10" Margin="0, 0, 0, 10">
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" HorizontalAlignment="Stretch" FontSize="14" Height="40" Style="{StaticResource AccentButtonStyle}" Click="ResetButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="↺"/>
+                        <TextBlock Text="Reset Count"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="1" HorizontalAlignment="Stretch" FontSize="14" Height="40" Click="SaveButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="💾"/>
+                        <TextBlock Text="Save &amp; Exit"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </StackPanel>
+
+        <!-- ROW 3: TOGGLE CONTROLS -->
+        <StackPanel Grid.Row="3" VerticalAlignment="Bottom" Spacing="5" Margin="0,10,0,0">
+
+            <TextBlock 
+                Text="Use this window for manual adjustments, reset, and persistent storage."
+                TextWrapping="Wrap" 
+                FontSize="11" 
+                Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                HorizontalAlignment="Center"/>
+
+            <StackPanel Orientation="Vertical" Spacing="8" Margin="0, 8, 0, 0" HorizontalAlignment="Center">
+
+                <!-- Toggle 1: XButtons -->
+                <controls:ToggleSwitch x:Name="XButtonHookToggle" Foreground="Black" FontWeight="SemiBold" IsOn="{x:Bind ViewModel.IsHookEnabled, Mode=TwoWay}" Toggled="XButtonHookToggle_Toggled" HorizontalAlignment="Stretch">
+                    <controls:ToggleSwitch.Header>
+                        <TextBlock Text="Toggle 1: Side Mouse Buttons" FontWeight="SemiBold" FontSize="12" Foreground="#000000" />
+                    </controls:ToggleSwitch.Header>
+                    <controls:ToggleSwitch.OnContent>
+                        <TextBlock Text="ACTIVE (Back/Forward)" FontWeight="SemiBold" Foreground="#4CAF50" FontSize="12"/>
+                    </controls:ToggleSwitch.OnContent>
+                    <controls:ToggleSwitch.OffContent>
+                        <TextBlock Text="INACTIVE" FontWeight="SemiBold" Foreground="#EF5350" FontSize="12"/>
+                    </controls:ToggleSwitch.OffContent>
+                </controls:ToggleSwitch>
+
+                <!-- Toggle 2: LButton -->
+                <controls:ToggleSwitch x:Name="LButtonHookToggle" Foreground="Black" FontWeight="SemiBold" IsOn="{x:Bind ViewModel.IsLButtonHookEnabled, Mode=TwoWay}" Toggled="LButtonHookToggle_Toggled" HorizontalAlignment="Stretch">
+                    <controls:ToggleSwitch.Header>
+                        <TextBlock Text="Toggle 2: Left Mouse Click" FontWeight="SemiBold" FontSize="12" Foreground="#000000" />
+                    </controls:ToggleSwitch.Header>
+                    <controls:ToggleSwitch.OnContent>
+                        <TextBlock Text="ACTIVE" FontWeight="SemiBold" Foreground="#4CAF50" FontSize="12"/>
+                    </controls:ToggleSwitch.OnContent>
+                    <controls:ToggleSwitch.OffContent>
+                        <TextBlock Text="INACTIVE" FontWeight="SemiBold" Foreground="#EF5350" FontSize="12"/>
+                    </controls:ToggleSwitch.OffContent>
+                </controls:ToggleSwitch>
+
+                <!-- Toggle 3: Custom Input -->
+                <StackPanel Spacing="5">
+                    <controls:ToggleSwitch x:Name="CustomHookToggle" Foreground="Black" FontWeight="SemiBold" IsOn="{x:Bind ViewModel.IsCustomInputEnabled, Mode=TwoWay}" Toggled="CustomHookToggle_Toggled" HorizontalAlignment="Stretch">
+                        <controls:ToggleSwitch.Header>
+                            <TextBlock Text="Toggle 3: Custom Key/Button" FontWeight="SemiBold" FontSize="12" Foreground="#000000" />
+                        </controls:ToggleSwitch.Header>
+                        <controls:ToggleSwitch.OnContent>
+                            <TextBlock Text="ACTIVE" FontWeight="SemiBold" Foreground="#4CAF50" FontSize="12"/>
+                        </controls:ToggleSwitch.OnContent>
+                        <controls:ToggleSwitch.OffContent>
+                            <TextBlock Text="INACTIVE" FontWeight="SemiBold" Foreground="#EF5350" FontSize="12"/>
+                        </controls:ToggleSwitch.OffContent>
+                    </controls:ToggleSwitch>
+
+                    <!-- UPDATED Record Button -->
+                    <Button x:Name="RecordButton" HorizontalAlignment="Stretch" Click="RecordCustomInput_Click" Height="32" BorderBrush="#CCCCCC" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="⏺" Foreground="Red" VerticalAlignment="Center"/>
+
+                            <!-- Default State: Shows bound key name -->
+                            <TextBlock x:Name="BoundKeyText" 
+                                        Text="{x:Bind ViewModel.CustomInputNameDisplay, Mode=OneWay}" 
+                                        FontSize="12" 
+                                        Foreground="Black" 
+                                        VerticalAlignment="Center"/>
+
+                            <!-- Recording State: Shows INSTRUCTION (Hidden by default) -->
+                            <TextBlock x:Name="InstructionText" 
+                                        Text="Press any key or click mouse..." 
+                                        FontSize="12" 
+                                        FontWeight="Bold" 
+                                        Foreground="Black" 
+                                        Visibility="Collapsed"
+                                        VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+            </StackPanel>
+
+        </StackPanel>
+
+        <Grid Grid.Row="4"/>
+    </Grid>
+</Window>
