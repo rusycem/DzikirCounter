@@ -50,7 +50,7 @@
     <AppInstallerUri>https://rusycem.itch.io/dzikircounter</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
-    <PackageCertificateThumbprint>4BCF446DC8385618BDBE676F869D81396B5AD02D</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>1A338BD91FAD39FD58E695F7F829630A7CCE5E98</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppxBundle>Always</AppxBundle>

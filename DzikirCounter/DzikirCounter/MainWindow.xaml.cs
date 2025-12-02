@@ -12,6 +12,7 @@ using Microsoft.UI.Windowing;
 using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using System.Runtime.InteropServices;
+using System.IO; // Added for Path.Combine
 
 namespace DzikirCounter
 {
@@ -264,6 +265,14 @@ namespace DzikirCounter
             IntPtr hWnd = WindowNative.GetWindowHandle(this);
             _appWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(hWnd));
             _appWindow.Resize(new SizeInt32(width, height));
+
+            // NEW: Set Window Icon Manually
+            string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "icon.ico");
+            if (File.Exists(iconPath))
+            {
+                _appWindow.SetIcon(iconPath);
+            }
+
             SetWindowSubclass(hWnd, s_windowSubclass, 0, IntPtr.Zero);
             CenterWindow(_appWindow);
         }

@@ -15,7 +15,7 @@
 	<Identity
 	  Name="rusycem.DzikirCounter"
 	  Publisher="CN=81FD8570-B90E-4A0B-A06D-B7E0F9447965"
-	  Version="1.0.30.0" />
+	  Version="1.0.31.0" />
 
 	<mp:PhoneIdentity PhoneProductId="41a6566b-888a-40ea-b375-a82aa8a8b816" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -43,7 +43,7 @@
 
 			<uap:VisualElements
 			  DisplayName="DzikirCounter"
-			  Description="Daily Ibadah Counter!"
+			  Description="Daily Ibadah Counter designed for productivity! Unlike standard counters, this app allows you to recite and count while you work, game, or read."
 			  BackgroundColor="transparent"
 			  Square150x150Logo="Images\Square150x150Logo.png"
 			  Square44x44Logo="Images\Square44x44Logo.png">
