@@ -43,6 +43,28 @@ Unlike standard counters, this utility features **Global Input Hooks**, allowing
 * **Theme Aware:** Fully supports System Light/Dark modes, plus a manual override toggle.
 * **Audio Feedback:** Satisfying "Pop" sound for counting and "Chime" for success (Toggleable).
 
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/4c9cd694-6dd4-4c0b-acf0-2f91696e050b" width="280" alt="UI for Counter" />
+        <br />
+        <b>Figure 1. UI for Counter</b>
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/f95bfac6-7e39-4523-93ba-c6d118ba5a62" width="280" alt="UI for Timer" />
+        <br />
+        <b>Figure 2. UI for Timer</b>
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/c9936cf2-e05b-4073-aba4-f7f1b8de0843" width="280" alt="UI for Settings" />
+        <br />
+        <b>Figure 3. UI for Settings</b>
+      </td>
+    </tr>
+  </table>
+</div>
+
 ## 🛠️ Technical Stack
 
 * **Framework:** Windows App SDK (WinUI 3)
